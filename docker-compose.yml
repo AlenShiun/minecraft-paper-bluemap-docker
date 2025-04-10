@@ -1,0 +1,40 @@
+services:
+  mc:
+    image: itzg/minecraft-server
+    environment:
+      EULA: "true"
+      TYPE: "PAPER"
+      ENABLE_WHITELIST: true
+      WHITELIST: YOUR_MINECRAFT_USERNAME
+    ports:
+      - "25565:25565"
+      - "19132:19132/udp"
+      - "8123:8100"
+    volumes:
+      - ./data:/data
+        # - ./plugins:/data/plugins
+    networks:
+      - nginx-network
+
+  nginx:
+    image: nginx:latest
+    container_name: bluemap-nginx
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - ./nginx/.htpasswd:/etc/nginx/.htpasswd
+    # ports:
+    #   - "12380:80"
+    depends_on:
+      - mc
+    restart: unless-stopped
+    networks:
+      - nginx-network
+    environment:
+      - VIRTUAL_HOST=your-domain.example.com
+      - VIRTUAL_PORT=80
+      - LETSENCRYPT_HOST=your-domain.example.com
+      - LETSENCRYPT_EMAIL=your-email@example.com
+
+networks:
+  nginx-network:
+    external: true
